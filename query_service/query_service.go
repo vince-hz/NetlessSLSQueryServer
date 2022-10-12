@@ -46,12 +46,16 @@ func DownloadHandler(c *gin.Context) {
 	}
 }
 
-func CutomQueryLogHandler(c *gin.Context) {
+func CustomQueryLogHandler(c *gin.Context) {
 	var user_query = struct {
 		From        int64  `form:"from" binding:"required"`
 		To          int64  `form:"to" binding:"required"`
 		CustomQuery string `form:"customQuery" binding:"required"`
 	}{}
+	if err := c.ShouldBindQuery(&user_query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
@@ -99,7 +103,6 @@ func LogHandler(c *gin.Context) {
 		suidQuery = ""
 	}
 	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc limit %d,%d", user_query.Uuid, suidQuery, user_query.Page*user_query.PageSize, user_query.PageSize)
-	fmt.Println("q", query)
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
