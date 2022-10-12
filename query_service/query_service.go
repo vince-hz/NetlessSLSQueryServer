@@ -20,7 +20,13 @@ func DownloadHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc", user_query.Uuid, user_query.Suid)
+	var suidQuery string
+	if len(user_query.Suid) > 0 {
+		suidQuery = fmt.Sprintf("and suid: %s", user_query.Suid)
+	} else {
+		suidQuery = ""
+	}
+	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc", user_query.Uuid, suidQuery)
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
