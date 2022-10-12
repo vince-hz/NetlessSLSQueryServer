@@ -11,10 +11,11 @@ import (
 
 func DownloadHandler(c *gin.Context) {
 	var user_query = struct {
-		From int64  `form:"from" binding:"required"`
-		To   int64  `form:"to" binding:"required"`
-		Uuid string `form:"uuid" binding:"required"`
-		Suid string `form:"suid"`
+		From int64    `form:"from" binding:"required"`
+		To   int64    `form:"to" binding:"required"`
+		Uuid string   `form:"uuid" binding:"required"`
+		Keys []string `form:"keys"  binding:"required"`
+		Suid string   `form:"suid"`
 	}{}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -38,7 +39,6 @@ func DownloadHandler(c *gin.Context) {
 		PowerSQL: false,
 	}
 
-	keys := c.QueryArray("keys")
 	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -46,7 +46,7 @@ func DownloadHandler(c *gin.Context) {
 		})
 		return
 	} else {
-		fileName := CreateLogCSVFile(logResponse.Logs, keys)
+		fileName := CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		c.File(fileName)
 		os.Remove(fileName)
 	}
@@ -141,10 +141,15 @@ func LogHandler(c *gin.Context) {
 
 func CustomQueryDownloadLog(c *gin.Context) {
 	var user_query = struct {
-		From        int64  `form:"from" binding:"required"`
-		To          int64  `form:"to" binding:"required"`
-		CustomQuery string `form:"customQuery" binding:"required"`
+		From        int64    `form:"from" binding:"required"`
+		To          int64    `form:"to" binding:"required"`
+		CustomQuery string   `form:"customQuery" binding:"required"`
+		Keys        []string `form:"keys"  binding:"required"`
 	}{}
+	if err := c.ShouldBindQuery(&user_query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
@@ -155,7 +160,6 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		Query:    user_query.CustomQuery,
 		PowerSQL: false,
 	}
-	keys := c.QueryArray("keys")
 	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -163,7 +167,7 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		})
 		return
 	} else {
-		fileName := CreateLogCSVFile(logResponse.Logs, keys)
+		fileName := CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		c.File(fileName)
 		os.Remove(fileName)
 	}
