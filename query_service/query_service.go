@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,11 @@ func CustomQueryLogHandler(c *gin.Context) {
 	}{}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	hasSelect := strings.Contains(user_query.CustomQuery, "select")
+	if !hasSelect {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "custom query should conatins select statement"})
 		return
 	}
 	request := sls.GetLogRequest{
