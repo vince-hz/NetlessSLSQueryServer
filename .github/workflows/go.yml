@@ -18,5 +18,17 @@ jobs:
       with:
         go-version: 1.19
 
+    - name: SetupSSH
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+    - name: Adding Known Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+    - name: Create-Evn-JSON
+      uses: jsdaniell/create-json@1.1.2
+      with:
+        name: "env.json"
+        json: ${{ secrets.ENV_JSON }}
     - name: RunDeployScript
-      run: sh deploy.sh
+      run: sh deploy.sh ${{ secrets.SSH_HOST }}
