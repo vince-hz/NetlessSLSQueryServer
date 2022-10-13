@@ -46,7 +46,7 @@ func DownloadHandler(c *gin.Context) {
 	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": logError,
+			"error": logError.Error(),
 		})
 		return
 	} else {
@@ -91,7 +91,7 @@ func CustomQueryLogHandler(c *gin.Context) {
 	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": logError,
+			"error": logError.Error(),
 		})
 		return
 	} else {
@@ -139,12 +139,12 @@ func LogHandler(c *gin.Context) {
 	logResponse, logError, histogramResponse, hError := LogQuery(request)
 	if hError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": hError,
+			"error": hError.Error(),
 		})
 		return
 	} else if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": logError,
+			"error": logError.Error(),
 		})
 		return
 	} else {
@@ -182,7 +182,7 @@ func CustomQueryDownloadLog(c *gin.Context) {
 	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": logError,
+			"error": logError.Error(),
 		})
 		return
 	} else {

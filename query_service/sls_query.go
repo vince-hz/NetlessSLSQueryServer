@@ -2,6 +2,7 @@ package query_service
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -30,6 +31,9 @@ func init() {
 }
 
 func LogQuery(request sls.GetLogRequest) (*sls.GetLogsResponse, error, *sls.GetHistogramsResponse, error) {
+	if env.ProjectName == "" {
+		return nil, fmt.Errorf("ProjectName is empty"), nil, fmt.Errorf("ProjectName is empty")
+	}
 	h, hError := Client.GetHistograms(env.ProjectName, env.LogStoreName, request.Topic, request.From, request.To, request.Query)
 	l, lError := Client.GetLogsV2(env.ProjectName, env.LogStoreName, &request)
 	return l, lError, h, hError
