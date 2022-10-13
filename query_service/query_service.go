@@ -12,12 +12,15 @@ import (
 
 func DownloadHandler(c *gin.Context) {
 	var user_query = struct {
-		From int64    `form:"from" binding:"required"`
-		To   int64    `form:"to" binding:"required"`
-		Uuid string   `form:"uuid" binding:"required"`
-		Keys []string `form:"keys"  binding:"required"`
-		Suid string   `form:"suid"`
-	}{}
+		From     int64    `form:"from" binding:"required"`
+		To       int64    `form:"to" binding:"required"`
+		Uuid     string   `form:"uuid" binding:"required"`
+		Keys     []string `form:"keys"  binding:"required"`
+		Suid     string   `form:"suid"`
+		FileType string   `form:"fileType"`
+	}{
+		FileType: "csv",
+	}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -47,7 +50,14 @@ func DownloadHandler(c *gin.Context) {
 		})
 		return
 	} else {
-		fileName := CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+		var fileName string
+		if user_query.FileType == "csv" {
+			fileName = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+		} else if user_query.FileType == "xlsx" {
+			fileName = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
+		}
 		c.File(fileName)
 		os.Remove(fileName)
 	}
@@ -151,7 +161,10 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		To          int64    `form:"to" binding:"required"`
 		CustomQuery string   `form:"customQuery" binding:"required"`
 		Keys        []string `form:"keys"  binding:"required"`
-	}{}
+		FileType    string   `form:"fileType"`
+	}{
+		FileType: "csv",
+	}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -173,7 +186,14 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		})
 		return
 	} else {
-		fileName := CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+		var fileName string
+		if user_query.FileType == "csv" {
+			fileName = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+		} else if user_query.FileType == "xlsx" {
+			fileName = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
+		}
 		c.File(fileName)
 		os.Remove(fileName)
 	}
