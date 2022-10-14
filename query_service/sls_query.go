@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-	file, _ := os.Open("env.json")
+	file, _ := os.Open("./env.json")
 	defer file.Close()
 	byteValue, _ := ioutil.ReadAll(file)
 	json.Unmarshal(byteValue, &env)
