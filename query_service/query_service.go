@@ -50,16 +50,18 @@ func DownloadHandler(c *gin.Context) {
 		})
 		return
 	} else {
-		var fileName string
+		var filePath string
 		if user_query.FileType == "csv" {
-			fileName = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		} else if user_query.FileType == "xlsx" {
-			fileName = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
 		}
-		c.File(fileName)
-		os.Remove(fileName)
+		fileName := fmt.Sprintf("%s.%s", user_query.Uuid, user_query.FileType)
+		c.FileAttachment(filePath, fileName)
+		c.File(filePath)
+		os.Remove(filePath)
 	}
 }
 
@@ -186,15 +188,16 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		})
 		return
 	} else {
-		var fileName string
+		var filePath string
 		if user_query.FileType == "csv" {
-			fileName = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		} else if user_query.FileType == "xlsx" {
-			fileName = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
 		}
-		c.File(fileName)
-		os.Remove(fileName)
+		fileName := fmt.Sprintf("%s.%s", user_query.CustomQuery, user_query.FileType)
+		c.FileAttachment(filePath, fileName)
+		os.Remove(filePath)
 	}
 }

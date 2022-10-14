@@ -11,8 +11,8 @@ import (
 )
 
 func CreateLogCSVFile(logs []map[string]string, keys []string) string {
-	fileName := fmt.Sprintf("room_query_%d.csv", time.Now().Unix())
-	file, _ := os.Create(fileName)
+	filePath := fmt.Sprintf("room_query_%d.csv", time.Now().Unix())
+	file, _ := os.Create(filePath)
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Write(keys)
@@ -23,7 +23,7 @@ func CreateLogCSVFile(logs []map[string]string, keys []string) string {
 		}
 		writer.Write(itemArray[:])
 	}
-	return fileName
+	return filePath
 }
 
 func findIndex(in []string, val string) int {
@@ -36,7 +36,7 @@ func findIndex(in []string, val string) int {
 }
 
 func CreateLogXLSCFile(logs []map[string]string, keys []string) string {
-	fileName := fmt.Sprintf("room_query_%d.xlsx", time.Now().Unix())
+	filePath := fmt.Sprintf("room_query_%d.xlsx", time.Now().Unix())
 	file := excelize.NewFile()
 	streamWriter, _ := file.NewStreamWriter("Sheet1")
 
@@ -90,6 +90,6 @@ func CreateLogXLSCFile(logs []map[string]string, keys []string) string {
 	}
 
 	streamWriter.Flush()
-	file.SaveAs(fileName)
-	return fileName
+	file.SaveAs(filePath)
+	return filePath
 }
