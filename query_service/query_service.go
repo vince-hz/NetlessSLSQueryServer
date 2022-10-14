@@ -14,7 +14,7 @@ func DownloadHandler(c *gin.Context) {
 	var user_query = struct {
 		From     int64    `form:"from" binding:"required"`
 		To       int64    `form:"to" binding:"required"`
-		Uuid     string   `form:"uuid" binding:"required"`
+		Uuid     string   `form:"uuid" binding:"required,len=32"`
 		Keys     []string `form:"keys"  binding:"required"`
 		Suid     string   `form:"suid"`
 		FileType string   `form:"fileType"`
@@ -108,7 +108,7 @@ func LogHandler(c *gin.Context) {
 	var user_query = struct {
 		From     int64  `form:"from" binding:"required"`
 		To       int64  `form:"to" binding:"required"`
-		Uuid     string `form:"uuid" binding:"required"`
+		Uuid     string `form:"uuid" binding:"required,len=32"`
 		Suid     string `form:"suid"`
 		PageSize int    `form:"pageSize"`
 		Page     int    `form:"page"`
