@@ -31,7 +31,7 @@ func DownloadHandler(c *gin.Context) {
 	} else {
 		suidQuery = ""
 	}
-	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc", user_query.Uuid, suidQuery)
+	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc limit 10000", user_query.Uuid, suidQuery)
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
