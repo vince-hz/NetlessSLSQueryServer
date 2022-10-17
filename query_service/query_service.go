@@ -126,7 +126,8 @@ func LogHandler(c *gin.Context) {
 	} else {
 		suidQuery = ""
 	}
-	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc limit %d,%d", user_query.Uuid, suidQuery, user_query.Page*user_query.PageSize, user_query.PageSize)
+	pageStart := (user_query.Page - 1) * user_query.PageSize
+	query := fmt.Sprintf("uuid: %s %s | SELECT * from log ORDER BY createdat asc limit %d,%d", user_query.Uuid, suidQuery, pageStart, user_query.PageSize)
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
