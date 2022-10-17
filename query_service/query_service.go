@@ -75,7 +75,7 @@ func CustomQueryLogHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	hasSelect := strings.Contains(user_query.CustomQuery, "select")
+	hasSelect := strings.Contains(strings.ToLower(user_query.CustomQuery), "select")
 	if !hasSelect {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "custom query should conatins select statement"})
 		return
