@@ -12,14 +12,16 @@ import (
 
 func DownloadHandler(c *gin.Context) {
 	var user_query = struct {
-		From     int64    `form:"from" binding:"required"`
-		To       int64    `form:"to" binding:"required"`
-		Uuid     string   `form:"uuid" binding:"required,len=32"`
-		Keys     []string `form:"keys"  binding:"required"`
-		Suid     string   `form:"suid"`
-		FileType string   `form:"fileType"`
+		From         int64    `form:"from" binding:"required"`
+		To           int64    `form:"to" binding:"required"`
+		Uuid         string   `form:"uuid" binding:"required,len=32"`
+		Keys         []string `form:"keys"  binding:"required"`
+		Suid         string   `form:"suid"`
+		FileType     string   `form:"fileType"`
+		TimeLocation string   `form:"timeLocation"`
 	}{
-		FileType: "csv",
+		FileType:     "csv",
+		TimeLocation: "",
 	}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -54,15 +56,25 @@ func DownloadHandler(c *gin.Context) {
 		if user_query.FileType == "csv" {
 			filePath = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		} else if user_query.FileType == "xlsx" {
-			filePath = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogXLSXFile(logResponse.Logs, user_query.Keys, user_query.TimeLocation)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
 		}
-		fileName := fmt.Sprintf("%s.%s", user_query.Uuid, user_query.FileType)
+		fileName := logFileName(user_query.Uuid, user_query.TimeLocation, user_query.FileType)
 		c.FileAttachment(filePath, fileName)
 		c.File(filePath)
 		os.Remove(filePath)
 	}
+}
+
+func logFileName(uuid string, timeLocation string, fileType string) string {
+	var locationSuffix string
+	if len(timeLocation) <= 0 {
+		locationSuffix = "-UTC"
+	} else {
+		locationSuffix = "-timelocation:" + timeLocation
+	}
+	return fmt.Sprintf("%s%s.%s", uuid, locationSuffix, fileType)
 }
 
 func CustomQueryLogHandler(c *gin.Context) {
@@ -160,13 +172,15 @@ func LogHandler(c *gin.Context) {
 
 func CustomQueryDownloadLog(c *gin.Context) {
 	var user_query = struct {
-		From        int64    `form:"from" binding:"required"`
-		To          int64    `form:"to" binding:"required"`
-		CustomQuery string   `form:"customQuery" binding:"required"`
-		Keys        []string `form:"keys"  binding:"required"`
-		FileType    string   `form:"fileType"`
+		From         int64    `form:"from" binding:"required"`
+		To           int64    `form:"to" binding:"required"`
+		CustomQuery  string   `form:"customQuery" binding:"required"`
+		Keys         []string `form:"keys"  binding:"required"`
+		FileType     string   `form:"fileType"`
+		TimeLocation string   `form:"timeLocation"`
 	}{
-		FileType: "csv",
+		FileType:     "csv",
+		TimeLocation: "",
 	}
 	if err := c.ShouldBindQuery(&user_query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -193,11 +207,11 @@ func CustomQueryDownloadLog(c *gin.Context) {
 		if user_query.FileType == "csv" {
 			filePath = CreateLogCSVFile(logResponse.Logs, user_query.Keys)
 		} else if user_query.FileType == "xlsx" {
-			filePath = CreateLogXLSCFile(logResponse.Logs, user_query.Keys)
+			filePath = CreateLogXLSXFile(logResponse.Logs, user_query.Keys, user_query.TimeLocation)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file type"})
 		}
-		fileName := fmt.Sprintf("%s.%s", user_query.CustomQuery, user_query.FileType)
+		fileName := logFileName(user_query.CustomQuery, user_query.TimeLocation, user_query.FileType)
 		c.FileAttachment(filePath, fileName)
 		os.Remove(filePath)
 	}

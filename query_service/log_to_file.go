@@ -35,7 +35,7 @@ func findIndex(in []string, val string) int {
 	return -1
 }
 
-func CreateLogXLSCFile(logs []map[string]string, keys []string) string {
+func CreateLogXLSXFile(logs []map[string]string, keys []string, locationStr string) string {
 	filePath := fmt.Sprintf("room_query_%d.xlsx", time.Now().Unix())
 	file := excelize.NewFile()
 	streamWriter, _ := file.NewStreamWriter("Sheet1")
@@ -44,8 +44,6 @@ func CreateLogXLSCFile(logs []map[string]string, keys []string) string {
 	streamWriter.SetColWidth(dateIndex+1, dateIndex+1, 15)
 	messageIndex := findIndex(keys, "message")
 	streamWriter.SetColWidth(messageIndex+1, messageIndex+1, 44)
-
-	dateStyleId, _ := file.NewStyle(&excelize.Style{NumFmt: 22})
 
 	messageStyle, _ := file.NewStyle(&excelize.Style{
 		Alignment: &excelize.Alignment{
@@ -72,14 +70,23 @@ func CreateLogXLSCFile(logs []map[string]string, keys []string) string {
 	streamWriter.SetRow("A1", header, excelize.RowOpts{Height: 44})
 	keyLength := len(keys)
 
+	specificLocation := len(locationStr) > 0
+	dateStyleId, _ := file.NewStyle(&excelize.Style{NumFmt: 22})
+	location, _ := time.LoadLocation(locationStr)
+
 	for i, log := range logs {
 		row := make([]interface{}, keyLength)
 		for j, k := range keys {
 			if j == dateIndex {
 				num, numErr := strconv.ParseInt(log[k], 10, 64)
 				if numErr == nil {
-					t := time.Unix(num/1000, 0)
-					row[j] = excelize.Cell{Value: t, StyleID: dateStyleId}
+					if specificLocation {
+						t := time.Unix(num/1000, 0).In(location)
+						row[j] = excelize.Cell{Value: t, StyleID: dateStyleId}
+					} else {
+						t := time.Unix(num/1000, 0)
+						row[j] = t.UTC().Format(time.RFC3339)
+					}
 					continue
 				}
 			}
