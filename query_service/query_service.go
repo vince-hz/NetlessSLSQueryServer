@@ -103,7 +103,7 @@ func TeamRooms(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	query := fmt.Sprintf("team: %s| SELECT DISTINCT uuid from log limit %d,%d", user_query.Team, user_query.Page, user_query.PageSize)
+	query := fmt.Sprintf("team: %s| SELECT DISTINCT uuid from log limit 100", user_query.Team)
 	request := sls.GetLogRequest{
 		From:     user_query.From,
 		To:       user_query.To,
@@ -114,7 +114,7 @@ func TeamRooms(c *gin.Context) {
 		Query:    query,
 		PowerSQL: false,
 	}
-	logResponse, logError, histogramResponse, _ := LogQuery(request)
+	logResponse, logError, _, _ := LogQuery(request)
 	if logError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": logError.Error(),
@@ -149,7 +149,7 @@ func TeamRooms(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{
 			"list":  list,
-			"count": histogramResponse.Count,
+			"count": logResponse.Count,
 		})
 	}
 }
