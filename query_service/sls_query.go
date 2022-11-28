@@ -10,11 +10,12 @@ import (
 )
 
 type Env = struct {
-	ProjectName     string `form:"ProjectName"`
-	Endpoint        string
-	LogStoreName    string
-	AccessKeyID     string
-	AccessKeySecret string
+	ProjectName         string `form:"ProjectName"`
+	Endpoint            string
+	LogStoreName        string
+	AccessKeyID         string
+	AccessKeySecret     string
+	WhiteOperationToken string
 }
 
 var (

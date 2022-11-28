@@ -15,8 +15,8 @@ func main() {
 			gin.SetMode(gin.ReleaseMode)
 		}
 	}
-
 	router := httpserver.DefaultEngine()
+	router.GET("/teamRooms", query_service.TeamRooms)
 	router.GET("/logs", query_service.LogHandler)
 	router.GET("/customQuery/logs", query_service.CustomQueryLogHandler)
 	router.GET("/downloadLogs", query_service.DownloadHandler)

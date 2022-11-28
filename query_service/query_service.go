@@ -1,7 +1,9 @@
 package query_service
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -75,6 +77,81 @@ func logFileName(uuid string, timeLocation string, fileType string) string {
 		locationSuffix = "-timelocation:" + timeLocation
 	}
 	return fmt.Sprintf("%s%s.%s", uuid, locationSuffix, fileType)
+}
+
+type TimeCountDayItem struct {
+	CumulativeSessionsCount int `json:"cumulativeSessionsCount"`
+	Timestamp               int `json:"timestamp"`
+}
+type TimeCountResult struct {
+	Msg []TimeCountDayItem `json:"msg"`
+}
+
+func TeamRooms(c *gin.Context) {
+	var user_query = struct {
+		From     int64  `form:"from" binding:"required"`
+		To       int64  `form:"to" binding:"required"`
+		Team     string `form:"team" binding:"required"`
+		PageSize int    `form:"pageSize"`
+		Page     int    `form:"page"`
+		Region   string `form:"region"`
+	}{
+		PageSize: 30,
+		Page:     1,
+	}
+	if err := c.ShouldBindQuery(&user_query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	query := fmt.Sprintf("team: %s| SELECT DISTINCT uuid from log limit %d,%d", user_query.Team, user_query.Page, user_query.PageSize)
+	request := sls.GetLogRequest{
+		From:     user_query.From,
+		To:       user_query.To,
+		Topic:    "",
+		Lines:    0,
+		Offset:   0,
+		Reverse:  false,
+		Query:    query,
+		PowerSQL: false,
+	}
+	logResponse, logError, histogramResponse, _ := LogQuery(request)
+	if logError != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": logError.Error(),
+		})
+		return
+	} else {
+		var list []gin.H = make([]gin.H, logResponse.Count)
+		for i := 0; i < int(logResponse.Count); i++ {
+			uuid := logResponse.Logs[i]["uuid"]
+			timeCountRequestPath := fmt.Sprintf("https://operation-server.netless.link/room/detail/day?region=%s&room=%s&token=%s", user_query.Region, uuid, env.WhiteOperationToken)
+			response, _ := http.Get(timeCountRequestPath)
+			body, _ := ioutil.ReadAll(response.Body)
+			var res TimeCountResult
+			json.Unmarshal(body, &res)
+			var timeCount = 0
+			var timestamp = 0
+			if len(res.Msg) > 0 {
+				for j := 0; j < len(res.Msg); j++ {
+					timeCount += res.Msg[j].CumulativeSessionsCount
+					if res.Msg[j].Timestamp > timestamp {
+						timestamp = res.Msg[j].Timestamp
+					}
+				}
+			}
+
+			list[i] = gin.H{
+				"uuid":      uuid,
+				"timeCount": timeCount,
+				"timestamp": timestamp,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"list":  list,
+			"count": histogramResponse.Count,
+		})
+	}
 }
 
 func CustomQueryLogHandler(c *gin.Context) {
